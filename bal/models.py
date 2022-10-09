@@ -14,6 +14,14 @@ class Bal(models.Model):
     def __str__(self):
         return self.name
 
+class Club(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, default=None, null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
+
 class Player(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     uniqueID = models.CharField(max_length=30, unique=True)
@@ -27,7 +35,7 @@ class Player(models.Model):
     weight = models.PositiveIntegerField(default=55, validators=[MinValueValidator(55), MaxValueValidator(120)])
     wage = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     contractEnd = models.DateField()
-    club = models.CharField(max_length=60)
+    club = models.ForeignKey(Club, on_delete=models.SET_NULL, null=True, blank=True)
     pressDescription = models.CharField(max_length=40)
     personality = models.CharField(max_length=40)
     preferredFoot = models.CharField(max_length=20)

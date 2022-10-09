@@ -1,17 +1,11 @@
 import json
 from datetime import datetime
-from enum import unique
-from turtle import position
 
-import bunch
-from bunch import *
-from django.shortcuts import render
-from munch import DefaultMunch
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from bal.models import Bal, Goalkeeper, Player, Technical
+from bal.models import Bal, Club, Goalkeeper, Player, Technical
 
 
 # Create your views here.
@@ -59,7 +53,6 @@ class PlayersAPI(APIView):
         players = players.all()
 
         if players is not None and len(players) > 0:
-            print('entrou')
             for player in players:
                 p = dict(
                     id                  = player.id,
@@ -75,7 +68,7 @@ class PlayersAPI(APIView):
                     weight              = player.weight,
                     wage                = player.wage,
                     contractEnd         = player.contractEnd,
-                    club                = player.club,
+                    club                = str(player.club),
                     pressDescription    = player.pressDescription,
                     personality         = player.personality,
                     preferredFoot       = player.preferredFoot,
@@ -195,13 +188,12 @@ class PlayersAPI(APIView):
         return p
 
     def convertData(self, data, bal):
-        total = 0
-        gkCount = 0
-        techCount = 0
+        updated = 0
+        newRecords = 0
         errors=[]
 
         try:
-            print(data['uniqueID'])
+            data['uniqueID']
             aux = []
             aux.append(data)
             data = aux
@@ -209,15 +201,26 @@ class PlayersAPI(APIView):
             pass
 
         for player in data:
+            new = False
             if 'uniqueID' in player:
                 uniqueID = player['uniqueID']
                 p = Player.objects.filter(uniqueID=uniqueID).first()
 
                 if not p:
+                    new = True
                     p = Player()
                     p.uniqueID = uniqueID
                     p.bal = bal
 
+                cl = player['club'] if 'club' in player else 'Livre'
+                club = Club.objects.filter(name=cl).first()
+                if not club:
+                    print('entrou aqui')
+                    club = Club()
+                    club.name = cl
+                    club.save()
+
+                p.club              = club
                 p.name              = player['name']                if 'name'               in player else p.name              if p.name              else 'John Doe'
                 p.nickname          = player['nickname']            if 'nickname'           in player else p.nickname          if p.nickname          else None
                 p.birthDate         = player['birthDate']           if 'birthDate'          in player else p.birthDate         if p.birthDate         else datetime.now()
@@ -228,7 +231,6 @@ class PlayersAPI(APIView):
                 p.weight            = player['weight']              if 'weight'             in player else p.weight            if p.weight            else 55
                 p.wage              = player['wage']                if 'wage'               in player else p.wage              if p.wage              else 100
                 p.contractEnd       = player['contractEnd']         if 'contractEnd'        in player else p.contractEnd       if p.contractEnd       else datetime.now()
-                p.club              = player['club']                if 'club'               in player else p.club              if p.club              else 'Livre'
                 p.pressDescription  = player['pressDescription']    if 'pressDescription'   in player else p.pressDescription  if p.pressDescription  else 'Médio'
                 p.personality       = player['personality']         if 'personality'        in player else p.personality       if p.personality       else 'Equilibrado'
                 p.preferredFoot     = player['preferredFoot']       if 'preferredFoot'      in player else p.preferredFoot     if p.preferredFoot     else 'Só Direito'
@@ -274,7 +276,8 @@ class PlayersAPI(APIView):
                 p.save()
 
                 if p.id:
-                    total += 1
+                    updated     += 0 if new else 1
+                    newRecords  += 1 if new else 0
                     if p.position == 'GR':
                         gk = Goalkeeper.objects.filter(player=p).first()
 
@@ -295,8 +298,6 @@ class PlayersAPI(APIView):
                         gk.tendencyPunch    = player['tendencyPunch']   if 'tendencyPunch'  in player else gk.tendencyPunch if gk.tendencyPunch else 1
 
                         gk.save()
-                        if gk.id:
-                            gkCount += 1
                     else:
                         tech = Technical.objects.filter(player=p).first()
 
@@ -319,15 +320,11 @@ class PlayersAPI(APIView):
                         tech.penaltyTaking  = player['penaltyTaking']   if 'penaltyTaking'  in player else tech.penaltyTaking if tech.penaltyTaking else 1
 
                         tech.save()
-                        if tech.id:
-                            techCount += 1
                 else:
                     errors.append(uniqueID)
         
         return dict(
-            total=total,
-            gk=gkCount,
-            tech=techCount,
-            result=gkCount+techCount,
+            updated=updated,
+            newRecords=newRecords,
             errors=errors
         )
