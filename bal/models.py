@@ -2,6 +2,7 @@ import uuid
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from jsonfield import JSONField
 
 # Create your models here.
 
@@ -119,3 +120,13 @@ class Goalkeeper(models.Model):
     
     def __str__(self):
         return self.player.nickname if self.player.nickname else self.player.name
+
+class Perk(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, null=True, blank=True, default=None)
+    stats = JSONField()
+    category = models.CharField(max_length=1, default='V')
+    bal = models.ForeignKey(Bal, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name

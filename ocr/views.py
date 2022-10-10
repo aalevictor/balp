@@ -45,9 +45,17 @@ class PerksAPI(APIView):
             
             matches = [x for x in perks if x in predicted_result]
 
-            response = dict(
-                result = matches
-            )    
+            if len(matches) > 0:
+                response = dict(
+                    perks = matches
+                )
+            else:
+                st = status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
+                response = dict(
+                    perks = 'Não foi encontrada nenhuma perk. Tente novamente.'
+                )
+
+            image.delete()
         else:
             st = status.HTTP_400_BAD_REQUEST
 

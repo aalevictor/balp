@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from bal.models import Bal, Club, Goalkeeper, Player, Technical
+from bal.models import Bal, Club, Goalkeeper, Perk, Player, Technical
 
 
 # Create your views here.
@@ -328,3 +328,11 @@ class PlayersAPI(APIView):
             newRecords=newRecords,
             errors=errors
         )
+
+class PerksAPI(APIView):
+
+    def get(self, request):
+        response = []
+        st = status.HTTP_500_INTERNAL_SERVER_ERROR
+            
+        return Response(response, status=st)
