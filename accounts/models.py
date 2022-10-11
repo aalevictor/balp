@@ -1,9 +1,6 @@
 import uuid
-from email.policy import default
 
-from django.conf import settings
-from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
-                                        PermissionsMixin)
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
 
@@ -47,7 +44,7 @@ class UserManager(BaseUserManager):
 
         return user
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser):
     id              = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name            = models.CharField(max_length=100)
     twitch          = models.CharField(max_length=100, unique=True)
