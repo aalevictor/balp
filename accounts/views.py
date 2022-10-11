@@ -1,9 +1,9 @@
 import hashlib
 import json
 
-from django.contrib.auth import authenticate
 from django.shortcuts import render
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -20,13 +20,6 @@ def get_request_data(self, request):
         return request_data
         
 class UsersAPI(APIView):
-    def delete(self, request):
-        st = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-        user = User.objects.filter(twitch='aalevictor').first()
-        user.delete()
-        
-        return Response({}, st)
 
     def post(self, request):
         st = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -78,38 +71,4 @@ class UsersAPI(APIView):
             result=error
         )
 
-        return Response(response, st)
-        
-class LoginAPI(APIView):
-    def post(self, request):
-        st = status.HTTP_500_INTERNAL_SERVER_ERROR
-        error = []
-
-        data = get_request_data(self, request)
-
-        try:
-            if 'password' in data:
-                password = data['password']
-                mb5_password = hashlib.md5(password.encode('UTF-8')).hexdigest()
-            else:
-                error.append('O campo senha é obrigatório.')
-                
-            if 'twitch' in data:
-                twitch = data['twitch']
-            else:
-                error.append('O campo login é obrigatório.')
-
-            if len(error) == 0:
-                user = User.objects.filter(twitch=twitch, password=mb5_password).first()
-                if user:
-                    auth = authenticate(request, username=twitch, password=mb5_password)
-                    print(auth)
-
-        except Exception as e:
-            error.append(str(e))
-
-        response = dict(
-            result=error
-        )
-        
         return Response(response, st)
