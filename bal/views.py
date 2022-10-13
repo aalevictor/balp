@@ -390,6 +390,9 @@ class PlayersCSV(APIView):
                 players = convertCSVtoPlayer(csv_reader, 0)
                 sent = len(players)
                 uploaded = convertData(players, bal)
+                st = status.HTTP_201_CREATED
+                if sent > uploaded['updated'] + uploaded['newRecords']:
+                    st = status.HTTP_206_PARTIAL_CONTENT
         except Exception as e:
             response = {
                 'error': str(e)
@@ -461,16 +464,21 @@ class PlayersAPI(APIView):
         data = get_request_data(request)
 
         if len(data) > 0:
-            sent = len(data)
-            st = status.HTTP_201_CREATED
-            balID = self.request.GET.get('bal', None)
-            if balID:
-                bal = Bal.objects.filter(id=balID).first()
-                if not bal:
+            try:
+                sent = len(data)
+                st = status.HTTP_201_CREATED
+                balID = self.request.GET.get('bal', None)
+                if balID:
+                    bal = Bal.objects.filter(id=balID).first()
+                    if not bal:
+                        bal = Bal.objects.first()
+                else:
                     bal = Bal.objects.first()
-            else:
-                bal = Bal.objects.first()
-            uploaded = convertData(data, bal)
+                uploaded = convertData(data, bal)
+                if sent > uploaded['updated'] + uploaded['newRecords']:
+                    st = status.HTTP_206_PARTIAL_CONTENT
+            except:
+                pass
 
         response = {
             'sent': sent,

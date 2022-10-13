@@ -79,6 +79,7 @@ class Player(models.Model):
     stamina = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     strength = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     bal = models.ForeignKey(Bal, on_delete=models.CASCADE)
+    updated = models.DateField(auto_now=True)
 
     def __str__(self):
         return self.nickname if self.nickname else self.name
@@ -131,3 +132,16 @@ class Perk(models.Model):
 
     def __str__(self):
         return self.name
+
+class TrainingSession(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    bal = models.ForeignKey(Bal, on_delete=models.CASCADE)
+    initDate = models.DateField(auto_now_add=True)
+    endDate = models.DateField()
+    visiblePerks = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    hiddenPerks = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+
+class Training(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    trainingSession = models.ForeignKey(TrainingSession, on_delete=models.CASCADE)
+    creation = models.DateField(auto_now_add=True)
