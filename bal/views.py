@@ -21,7 +21,15 @@ def get_request_data(self, request):
             request_data = request.data
         return request_data
 
-def convertData(self, data, bal):
+def date_format(self, date=None):
+    if date:
+        result = None
+        try:
+            return result
+        except Exception as e:
+            return datetime.today()
+
+def convertData(self, data, bal=Bal.objects.first()):
     updated = 0
     newRecords = 0
     errors=[]
@@ -31,12 +39,18 @@ def convertData(self, data, bal):
         aux = []
         aux.append(data)
         data = aux
+        print('veio aqui')
     except Exception as e:
+        print('veio aqui tbm')
         pass
 
+    print(len(data))
+
     for player in data:
+        print('veio aqui 3')
         new = False
         if 'uniqueID' in player:
+            print('veio aqui 4')
             uniqueID = player['uniqueID']
             p = Player.objects.filter(uniqueID=uniqueID).first()
 
@@ -239,6 +253,7 @@ def getExtras(self, p):
             crossing        = technical.crossing,
             dribbling       = technical.dribbling,
             finishing       = technical.finishing,
+            firstTouch      = technical.firstTouch,
             freekick        = technical.freekick,
             heading         = technical.heading,
             longShots       = technical.longShots,
@@ -270,91 +285,107 @@ def getExtras(self, p):
 
     return p
 
-def convertCSVtoPlayer(csv):
-    
-    player = dict(
-        uniqueID            = csv[0],
-        name                = csv[0],
-        birthDate           = csv[0],
-        age                 = csv[0],
-        nationality         = csv[0],
-        secondNationality   = csv[0],
-        height              = csv[0],
-        weight              = csv[0],
-        wage                = csv[0],
-        contractEnd         = csv[0],
-        club                = csv[0],
-        pressDescription    = csv[0],
-        personality         = csv[0],
-        preferredFoot       = csv[0],
-        position            = csv[0],
-        currentAbility      = csv[0],
-        potentialAbility    = csv[0],
-        adaptability        = csv[0],
-        ambition            = csv[0],
-        consistency         = csv[0],
-        controversy         = csv[0],
-        sportsmanship       = csv[0],
-        dirtiness           = csv[0],
-        importantMatches    = csv[0],
-        loyalty             = csv[0],
-        pressure            = csv[0],
-        professionalism     = csv[0],
-        injuryProneness     = csv[0],
-        temperament         = csv[0],
-        versatility         = csv[0],
-        aggression          = csv[0],
-        anticipation        = csv[0],
-        bravery             = csv[0],
-        composure           = csv[0],
-        concentration       = csv[0],
-        decisions           = csv[0],
-        determination       = csv[0],
-        flair               = csv[0],
-        leadership          = csv[0],
-        offBall             = csv[0],
-        positioning         = csv[0],
-        teamwork            = csv[0],
-        vision              = csv[0],
-        workRate            = csv[0],
-        acceleration        = csv[0],
-        agility             = csv[0],
-        balance             = csv[0],
-        jumpingReach        = csv[0],
-        naturalFitness      = csv[0],
-        pace                = csv[0],
-        stamina             = csv[0],
-        strength            = csv[0],
-        corners             = csv[0],   
-        crossing            = csv[0],   
-        dribbling           = csv[0],       
-        finishing           = csv[0],       
-        freekick            = csv[0],   
-        heading             = csv[0],   
-        longShots           = csv[0],       
-        longThrows          = csv[0],       
-        marking             = csv[0],   
-        passing             = csv[0],   
-        tackling            = csv[0],   
-        penaltyTaking       = csv[0],           
-        technique           = csv[0],
-        aerialAbility       = csv[0],
-        commandArea         = csv[0],
-        communication       = csv[0], 
-        eccentricity        = csv[0], 
-        handling            = csv[0], 
-        throwing            = csv[0],
-        kicking             = csv[0],
-        oneOnOne            = csv[0],
-        reflexes            = csv[0],
-        rushingOut          = csv[0],
-        tendencyPunch       = csv[0],
-    )
+def convertCSVtoPlayer(csv_reader, cont):
+    players = []
 
+    for csv in csv_reader:
+        if cont == 0:
+            cont += 1
+        else:
+            try:
+                player = dict(
+                    uniqueID            = csv[2],
+                    name                = csv[3],
+                    birthDate           = datetime.strptime(csv[4].split(' ')[0], '%d/%m/%Y'),
+                    age                 = int(csv[5]),
+                    nationality         = csv[6],
+                    secondNationality   = csv[7],
+                    height              = int(csv[8].split(' ')[0]),
+                    weight              = int(csv[9].split(' ')[0]),
+                    wage                = csv[10].replace('€', '').replace(',', '').split(' ')[0],
+                    contractEnd         = datetime.strptime(csv[11], '%d/%m/%Y'),
+                    club                = csv[12],
+                    pressDescription    = csv[13],
+                    personality         = csv[14],
+                    preferredFoot       = csv[15],
+                    position            = csv[16],
+                    currentAbility      = csv[17],
+                    potentialAbility    = csv[18],
+                    adaptability        = csv[19],
+                    ambition            = csv[20],
+                    consistency         = csv[21],
+                    controversy         = csv[22],
+                    sportsmanship       = csv[23],
+                    dirtiness           = csv[24],
+                    importantMatches    = csv[25],
+                    loyalty             = csv[26],
+                    pressure            = csv[27],
+                    professionalism     = csv[28],
+                    injuryProneness     = csv[29],
+                    temperament         = csv[30],
+                    versatility         = csv[31],
+                    aggression          = csv[78],
+                    anticipation        = csv[65],
+                    bravery             = csv[66],
+                    composure           = csv[67],
+                    concentration       = csv[76],
+                    decisions           = csv[77],
+                    determination       = csv[68],
+                    flair               = csv[75],
+                    leadership          = csv[69],
+                    offBall             = csv[72],
+                    positioning         = csv[73],
+                    teamwork            = csv[71],
+                    vision              = csv[70],
+                    workRate            = csv[74],
+                    acceleration        = csv[32],
+                    agility             = csv[33],
+                    balance             = csv[35],
+                    jumpingReach        = csv[37],
+                    naturalFitness      = csv[34],
+                    pace                = csv[39],
+                    stamina             = csv[38],
+                    strength            = csv[36],
+                    corners             = csv[40],   
+                    crossing            = csv[41],   
+                    dribbling           = csv[42],       
+                    finishing           = csv[43],       
+                    firstTouch          = csv[44],        
+                    freekick            = csv[45],   
+                    heading             = csv[46],   
+                    longShots           = csv[47],       
+                    longThrows          = csv[48],       
+                    marking             = csv[49],   
+                    passing             = csv[50],   
+                    tackling            = csv[52],   
+                    penaltyTaking       = csv[51],           
+                    technique           = csv[53],
+                    aerialAbility       = csv[56],
+                    commandArea         = csv[57],
+                    communication       = csv[58], 
+                    eccentricity        = csv[59], 
+                    handling            = csv[60], 
+                    throwing            = csv[61],
+                    kicking             = csv[62],
+                    oneOnOne            = csv[64],
+                    reflexes            = csv[63],
+                    rushingOut          = csv[54],
+                    tendencyPunch       = csv[55],
+                )
+                players.append(player)
+            except Exception as e:
+                print(e)
+                pass
+    
+    return players
 class PlayersCSV(APIView):
     # permission_classes = (IsAuthenticated, )
 
     def post(self, request):
+        uploaded = []
+        sent = []
+        st = status.HTTP_500_INTERNAL_SERVER_ERROR
+
         balID = self.request.GET.get('bal', None)
         if balID:
             bal = Bal.objects.filter(id=balID).first()
@@ -367,12 +398,22 @@ class PlayersCSV(APIView):
         uploaded_file_url = fs.url(filename)
         excel_file = uploaded_file_url
 
-        with open('.'+excel_file) as file:
-            csv_reader = csv.reader(file, delimiter=';')
-            for row in csv_reader:
-                print(row[3])
+        try:
+            with open('.'+excel_file) as file:
+                csv_reader = csv.reader(file, delimiter=';')
+                players = convertCSVtoPlayer(csv_reader, 0)
+                sent = len(players)
+                uploaded = convertData(self, players, bal)
+                print(uploaded)
+        except Exception as e:
+            response.append(e)
 
-        return Response()
+        response = {
+            'sent': sent,
+            'uploaded': uploaded,
+        }
+
+        return Response(response, st)
 
 class PlayersAPI(APIView):
     # permission_classes = (IsAuthenticated, )

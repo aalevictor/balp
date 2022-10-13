@@ -89,6 +89,7 @@ class Technical(models.Model):
     crossing = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     dribbling = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     finishing = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
+    firstTouch = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     freekick = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     heading = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     longShots = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
