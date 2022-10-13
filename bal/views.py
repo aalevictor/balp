@@ -13,7 +13,7 @@ from bal.models import Bal, Club, Goalkeeper, Player, Technical
 
 
 # Create your views here.
-def get_request_data(self, request):
+def get_request_data(request):
         try:
             o = request.body.decode('utf-8')
             request_data = json.loads(o)
@@ -21,15 +21,7 @@ def get_request_data(self, request):
             request_data = request.data
         return request_data
 
-def date_format(self, date=None):
-    if date:
-        result = None
-        try:
-            return result
-        except Exception as e:
-            return datetime.today()
-
-def convertData(self, data, bal=Bal.objects.first()):
+def convertData(data, bal=Bal.objects.first()):
     updated = 0
     newRecords = 0
     errors=[]
@@ -244,7 +236,7 @@ def convertPlayer(player):
 
     return p
 
-def getExtras(self, p):
+def getExtras(p):
     technical = Technical.objects.filter(player=p['id']).first()
 
     if technical:
@@ -403,7 +395,7 @@ class PlayersCSV(APIView):
                 csv_reader = csv.reader(file, delimiter=';')
                 players = convertCSVtoPlayer(csv_reader, 0)
                 sent = len(players)
-                uploaded = convertData(self, players, bal)
+                uploaded = convertData(players, bal)
                 print(uploaded)
         except Exception as e:
             response.append(e)
@@ -452,10 +444,12 @@ class PlayersAPI(APIView):
         players = players.all()
 
         if players is not None and len(players) > 0:
+            print(len(players))
             for player in players:
                 p = convertPlayer(player)
                 p = getExtras(p)
                 response.append(p)
+            print(len(response))
             st = status.HTTP_200_OK
         else:
             st = status.HTTP_400_BAD_REQUEST
@@ -467,7 +461,7 @@ class PlayersAPI(APIView):
         sent = 0
         uploaded = dict()
 
-        data = get_request_data(self, request)
+        data = get_request_data(request)
 
         if len(data) > 0:
             sent = len(data)
