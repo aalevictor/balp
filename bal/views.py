@@ -31,18 +31,12 @@ def convertData(data, bal=Bal.objects.first()):
         aux = []
         aux.append(data)
         data = aux
-        print('veio aqui')
     except Exception as e:
-        print('veio aqui tbm')
         pass
 
-    print(len(data))
-
     for player in data:
-        print('veio aqui 3')
         new = False
         if 'uniqueID' in player:
-            print('veio aqui 4')
             uniqueID = player['uniqueID']
             p = Player.objects.filter(uniqueID=uniqueID).first()
 
@@ -55,7 +49,6 @@ def convertData(data, bal=Bal.objects.first()):
             cl = player['club'] if 'club' in player else 'Livre'
             club = Club.objects.filter(name=cl).first()
             if not club:
-                print('entrou aqui')
                 club = Club()
                 club.name = cl
                 club.save()
@@ -172,7 +165,7 @@ def convertData(data, bal=Bal.objects.first()):
 def convertPlayer(player):
     p = dict(
         id                  = player.id,
-        bal                 = player.bal.id,
+        bal                 = player.bal.name,
         uniqueID            = player.uniqueID,
         name                = player.name,
         nickname            = player.nickname,
@@ -366,7 +359,6 @@ def convertCSVtoPlayer(csv_reader, cont):
                 )
                 players.append(player)
             except Exception as e:
-                print(e)
                 pass
     
     return players
@@ -383,6 +375,8 @@ class PlayersCSV(APIView):
             bal = Bal.objects.filter(id=balID).first()
             if not bal:
                 bal = Bal.objects.first()
+        else:
+            bal = Bal.objects.first()
         
         myfile = request.FILES['players']     
         fs = FileSystemStorage()
@@ -396,9 +390,14 @@ class PlayersCSV(APIView):
                 players = convertCSVtoPlayer(csv_reader, 0)
                 sent = len(players)
                 uploaded = convertData(players, bal)
-                print(uploaded)
         except Exception as e:
-            response.append(e)
+            response = {
+                'error': str(e)
+            }
+            fs.delete(filename)
+            return Response(response, st)
+
+        fs.delete(filename)
 
         response = {
             'sent': sent,
@@ -444,12 +443,10 @@ class PlayersAPI(APIView):
         players = players.all()
 
         if players is not None and len(players) > 0:
-            print(len(players))
             for player in players:
                 p = convertPlayer(player)
                 p = getExtras(p)
                 response.append(p)
-            print(len(response))
             st = status.HTTP_200_OK
         else:
             st = status.HTTP_400_BAD_REQUEST
