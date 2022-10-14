@@ -145,3 +145,4 @@ class Training(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     trainingSession = models.ForeignKey(TrainingSession, on_delete=models.CASCADE)
     creation = models.DateField(auto_now_add=True)
+    attributes = JSONField(default=None)
