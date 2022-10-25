@@ -118,6 +118,11 @@ class Goalkeeper(models.Model):
     rushingOut = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     tendencyPunch = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     throwing = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
+    freekick = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
+    passing = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
+    firstTouch = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
+    penaltyTaking = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
+    technique = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(20)])
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     
     def __str__(self):

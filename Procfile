@@ -1,0 +1,1 @@
+web: gunicorn balp.wsgi --log-file -

@@ -1,13 +1,20 @@
 import csv
 import json
+import locale
+import re
 from datetime import datetime
 
+import country_converter as coco
 import pandas as pd
 from django.core.files.storage import FileSystemStorage
+from googletrans import Translator, constants
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+locale.setlocale(locale.LC_ALL, '')
+translator = Translator()
 
 from bal.models import Bal, Club, Goalkeeper, Player, Technical
 
@@ -129,6 +136,14 @@ def convertData(data, bal=Bal.objects.first()):
                     gk.rushingOut       = player['rushingOut']      if 'rushingOut'     in player else gk.rushingOut    if gk.rushingOut    else 1
                     gk.throwing         = player['throwing']        if 'throwing'       in player else gk.throwing      if gk.throwing      else 1
                     gk.tendencyPunch    = player['tendencyPunch']   if 'tendencyPunch'  in player else gk.tendencyPunch if gk.tendencyPunch else 1
+                    gk.rushingOut       = player['rushingOut']      if 'rushingOut'     in player else gk.rushingOut    if gk.rushingOut    else 1
+                    gk.throwing         = player['throwing']        if 'throwing'       in player else gk.throwing      if gk.throwing      else 1
+                    gk.tendencyPunch    = player['tendencyPunch']   if 'tendencyPunch'  in player else gk.tendencyPunch if gk.tendencyPunch else 1
+                    gk.passing          = player['passing']         if 'passing'        in player else gk.passing       if gk.passing       else 1
+                    gk.firstTouch       = player['firstTouch']      if 'firstTouch'     in player else gk.firstTouch    if gk.firstTouch    else 1
+                    gk.freekick         = player['freekick']        if 'freekick'       in player else gk.freekick      if gk.freekick      else 1
+                    gk.penaltyTaking    = player['penaltyTaking']   if 'penaltyTaking'  in player else gk.penaltyTaking if gk.penaltyTaking else 1
+                    gk.technique        = player['technique']       if 'technique'      in player else gk.technique     if gk.technique     else 1
 
                     gk.save()
                 else:
@@ -169,14 +184,14 @@ def convertPlayer(player):
         uniqueID            = player.uniqueID,
         name                = player.name,
         nickname            = player.nickname,
-        birthDate           = player.birthDate,
+        birthDate           = f"{player.birthDate:%d/%m/%Y}",
         age                 = player.age,
         nationality         = player.nationality,
         secondNationality   = player.secondNationality,
         height              = player.height,
         weight              = player.weight,
-        wage                = player.wage,
-        contractEnd         = player.contractEnd,
+        wage                = locale.currency(player.wage, grouping=True).replace('R$', '€').replace(',00', ' p/a'),
+        contractEnd         = f"{player.contractEnd:%d/%m/%Y}",
         club                = str(player.club),
         pressDescription    = player.pressDescription,
         personality         = player.personality,
@@ -249,7 +264,6 @@ def getExtras(p):
             tackling        = technical.tackling,
             technique       = technical.technique,
         )
-        p.update({'technicals': extra})
     else:
         goalkeeper = Goalkeeper.objects.filter(player=p['id']).first()
         if goalkeeper:
@@ -265,9 +279,14 @@ def getExtras(p):
                 rushingOut      = goalkeeper.rushingOut,
                 tendencyPunch   = goalkeeper.tendencyPunch,
                 throwing        = goalkeeper.throwing,
+                passing         = goalkeeper.passing,
+                firstTouch      = goalkeeper.firstTouch,
+                freekick        = goalkeeper.freekick,
+                penaltyTaking   = goalkeeper.penaltyTaking,
+                technique       = goalkeeper.technique,
             )
-            p.update({'goalkeeper': extra})
-
+    
+    p.update({'extras': extra})
     return p
 
 def convertCSVtoPlayer(csv_reader, cont):
