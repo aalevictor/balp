@@ -1,4 +1,4 @@
--r requirements-dev.txt
-gunicorn
+\gunicorn
 psycopg2
-python3-opencv
+opencv-python-headless
+-r requirements-dev.txt
