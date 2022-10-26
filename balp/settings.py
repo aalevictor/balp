@@ -141,7 +141,8 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5173',
     'http://192.168.15.8:5173',
-    'http://*'
+    'http://192.168.15.8:3000',
+    'http://*:*'
 ]
 
 CORS_ALLOW_HEADERS = [
