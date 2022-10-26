@@ -190,7 +190,7 @@ def convertPlayer(player):
         secondNationality   = player.secondNationality,
         height              = player.height,
         weight              = player.weight,
-        wage                = locale.currency(player.wage, grouping=True).replace('R$', '€').replace(',00', ' p/a'),
+        wage                = locale.currency(player.wage, grouping=True).replace('$', '€').replace('.00', ' p/a').replace(',', '.'),
         contractEnd         = f"{player.contractEnd:%d/%m/%Y}",
         club                = str(player.club),
         pressDescription    = player.pressDescription,
