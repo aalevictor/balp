@@ -143,7 +143,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://192.168.15.8:5173',
     'http://192.168.15.8:3000',
     'http://*:*',
-    'https://ariedoverse.herokuapp.com'
+    'https://ariedoverse.herokuapp.com',
+    'http://ariedoverse.herokuapp.com'
 ]
 
 CORS_ALLOW_HEADERS = [
