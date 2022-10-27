@@ -3,4 +3,3 @@ migrations
 __pycache__
 media
 .pyc
-db.sqlite3
