@@ -1,15 +1,11 @@
 import csv
 import json
 import locale
-import re
 from datetime import datetime
 
-import country_converter as coco
-import pandas as pd
 from django.core.files.storage import FileSystemStorage
-from googletrans import Translator, constants
+from googletrans import Translator
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -43,133 +39,139 @@ def convertData(data, bal=Bal.objects.first()):
 
     for player in data:
         new = False
-        if 'uniqueID' in player:
-            uniqueID = player['uniqueID']
-            p = Player.objects.filter(uniqueID=uniqueID).first()
+        try:
+            print(player)
+            if 'uniqueID' in player:
+                uniqueID = player['uniqueID']
+                p = Player.objects.filter(uniqueID=uniqueID).first()
 
-            if not p:
-                new = True
-                p = Player()
-                p.uniqueID = uniqueID
-                p.bal = bal
+                if not p:
+                    new = True
+                    p = Player()
+                    p.uniqueID = uniqueID
+                    p.bal = bal
 
-            cl = player['club'] if 'club' in player else 'Livre'
-            club = Club.objects.filter(name=cl).first()
-            if not club:
-                club = Club()
-                club.name = cl
-                club.save()
+                cl = player['club'] if 'club' in player else 'Livre'
+                club = Club.objects.filter(name=cl).first()
+                if not club:
+                    club = Club()
+                    club.name = cl
+                    club.save()
 
-            p.club              = club
-            p.name              = player['name']                if 'name'               in player else p.name              if p.name              else 'John Doe'
-            p.nickname          = player['nickname']            if 'nickname'           in player else p.nickname          if p.nickname          else None
-            p.birthDate         = player['birthDate']           if 'birthDate'          in player else p.birthDate         if p.birthDate         else datetime.now()
-            p.age               = player['age']                 if 'age'                in player else p.age               if p.age               else 15
-            p.nationality       = player['nationality']         if 'nationality'        in player else p.nationality       if p.nationality       else 'BRA'
-            p.secondNationality = player['secondNationality']   if 'secondNationality'  in player else p.secondNationality if p.secondNationality else None
-            p.height            = player['height']              if 'height'             in player else p.height            if p.height            else 150
-            p.weight            = player['weight']              if 'weight'             in player else p.weight            if p.weight            else 55
-            p.wage              = player['wage']                if 'wage'               in player else p.wage              if p.wage              else 100
-            p.contractEnd       = player['contractEnd']         if 'contractEnd'        in player else p.contractEnd       if p.contractEnd       else datetime.now()
-            p.pressDescription  = player['pressDescription']    if 'pressDescription'   in player else p.pressDescription  if p.pressDescription  else 'Médio'
-            p.personality       = player['personality']         if 'personality'        in player else p.personality       if p.personality       else 'Equilibrado'
-            p.preferredFoot     = player['preferredFoot']       if 'preferredFoot'      in player else p.preferredFoot     if p.preferredFoot     else 'Só Direito'
-            p.position          = player['position']            if 'position'           in player else p.position          if p.position          else 'M (C)'
-            p.currentAbility    = player['currentAbility']      if 'currentAbility'     in player else p.currentAbility    if p.currentAbility    else 1
-            p.potentialAbility  = player['potentialAbility']    if 'potentialAbility'   in player else p.potentialAbility  if p.potentialAbility  else 1
-            p.adaptability      = player['adaptability']        if 'adaptability'       in player else p.adaptability      if p.adaptability      else 1
-            p.ambition          = player['ambition']            if 'ambition'           in player else p.ambition          if p.ambition          else 1
-            p.consistency       = player['consistency']         if 'consistency'        in player else p.consistency       if p.consistency       else 1
-            p.controversy       = player['controversy']         if 'controversy'        in player else p.controversy       if p.controversy       else 1
-            p.sportsmanship     = player['sportsmanship']       if 'sportsmanship'      in player else p.sportsmanship     if p.sportsmanship     else 1
-            p.dirtiness         = player['dirtiness']           if 'dirtiness'          in player else p.dirtiness         if p.dirtiness         else 1
-            p.importantMatches  = player['importantMatches']    if 'importantMatches'   in player else p.importantMatches  if p.importantMatches  else 1
-            p.loyalty           = player['loyalty']             if 'loyalty'            in player else p.loyalty           if p.loyalty           else 1
-            p.pressure          = player['pressure']            if 'pressure'           in player else p.pressure          if p.pressure          else 1
-            p.professionalism   = player['professionalism']     if 'professionalism'    in player else p.professionalism   if p.professionalism   else 1
-            p.injuryProneness   = player['injuryProneness']     if 'injuryProneness'    in player else p.injuryProneness   if p.injuryProneness   else 1
-            p.temperament       = player['temperament']         if 'temperament'        in player else p.temperament       if p.temperament       else 1
-            p.versatility       = player['versatility']         if 'versatility'        in player else p.versatility       if p.versatility       else 1
-            p.aggression        = player['aggression']          if 'aggression'         in player else p.aggression        if p.aggression        else 1
-            p.anticipation      = player['anticipation']        if 'anticipation'       in player else p.anticipation      if p.anticipation      else 1
-            p.bravery           = player['bravery']             if 'bravery'            in player else p.bravery           if p.bravery           else 1
-            p.composure         = player['composure']           if 'composure'          in player else p.composure         if p.composure         else 1
-            p.concentration     = player['concentration']       if 'concentration'      in player else p.concentration     if p.concentration     else 1
-            p.decisions         = player['decisions']           if 'decisions'          in player else p.decisions         if p.decisions         else 1
-            p.determination     = player['determination']       if 'determination'      in player else p.determination     if p.determination     else 1
-            p.flair             = player['flair']               if 'flair'              in player else p.flair             if p.flair             else 1
-            p.leadership        = player['leadership']          if 'leadership'         in player else p.leadership        if p.leadership        else 1
-            p.offBall           = player['offBall']             if 'offBall'            in player else p.offBall           if p.offBall           else 1
-            p.positioning       = player['positioning']         if 'positioning'        in player else p.positioning       if p.positioning       else 1
-            p.teamwork          = player['teamwork']            if 'teamwork'           in player else p.teamwork          if p.teamwork          else 1
-            p.vision            = player['vision']              if 'vision'             in player else p.vision            if p.vision            else 1
-            p.workRate          = player['workRate']            if 'workRate'           in player else p.workRate          if p.workRate          else 1
-            p.acceleration      = player['agility']             if 'acceleration'       in player else p.acceleration      if p.acceleration      else 1
-            p.agility           = player['agility']             if 'agility'            in player else p.agility           if p.agility           else 1
-            p.balance           = player['balance']             if 'balance'            in player else p.balance           if p.balance           else 1
-            p.jumpingReach      = player['jumpingReach']        if 'jumpingReach'       in player else p.jumpingReach      if p.jumpingReach      else 1
-            p.naturalFitness    = player['naturalFitness']      if 'naturalFitness'     in player else p.naturalFitness    if p.naturalFitness    else 1
-            p.pace              = player['pace']                if 'pace'               in player else p.pace              if p.pace              else 1
-            p.stamina           = player['stamina']             if 'stamina'            in player else p.stamina           if p.stamina           else 1
-            p.strength          = player['strength']            if 'strength'           in player else p.strength          if p.strength          else 1
+                print(p.wage)
 
-            p.save()
+                p.club              = club
+                p.name              = player['name']                if 'name'               in player else p.name              if p.name              else 'John Doe'
+                p.nickname          = player['nickname']            if 'nickname'           in player else p.nickname          if p.nickname          else None
+                p.birthDate         = player['birthDate']           if 'birthDate'          in player else p.birthDate         if p.birthDate         else datetime.now()
+                p.age               = player['age']                 if 'age'                in player else p.age               if p.age               else 15
+                p.nationality       = player['nationality']         if 'nationality'        in player else p.nationality       if p.nationality       else 'BRA'
+                p.secondNationality = player['secondNationality']   if 'secondNationality'  in player else p.secondNationality if p.secondNationality else None
+                p.height            = player['height']              if 'height'             in player else p.height            if p.height            else 150
+                p.weight            = player['weight']              if 'weight'             in player else p.weight            if p.weight            else 55
+                p.wage              = int(player['wage'])           if 'wage'               in player else p.wage              if p.wage              else 100
+                p.contractEnd       = player['contractEnd']         if 'contractEnd'        in player else p.contractEnd       if p.contractEnd       else datetime.now()
+                p.pressDescription  = player['pressDescription']    if 'pressDescription'   in player else p.pressDescription  if p.pressDescription  else 'Médio'
+                p.personality       = player['personality']         if 'personality'        in player else p.personality       if p.personality       else 'Equilibrado'
+                p.preferredFoot     = player['preferredFoot']       if 'preferredFoot'      in player else p.preferredFoot     if p.preferredFoot     else 'Só Direito'
+                p.position          = player['position']            if 'position'           in player else p.position          if p.position          else 'M (C)'
+                p.currentAbility    = player['currentAbility']      if 'currentAbility'     in player else p.currentAbility    if p.currentAbility    else 1
+                p.potentialAbility  = player['potentialAbility']    if 'potentialAbility'   in player else p.potentialAbility  if p.potentialAbility  else 1
+                p.adaptability      = player['adaptability']        if 'adaptability'       in player else p.adaptability      if p.adaptability      else 1
+                p.ambition          = player['ambition']            if 'ambition'           in player else p.ambition          if p.ambition          else 1
+                p.consistency       = player['consistency']         if 'consistency'        in player else p.consistency       if p.consistency       else 1
+                p.controversy       = player['controversy']         if 'controversy'        in player else p.controversy       if p.controversy       else 1
+                p.sportsmanship     = player['sportsmanship']       if 'sportsmanship'      in player else p.sportsmanship     if p.sportsmanship     else 1
+                p.dirtiness         = player['dirtiness']           if 'dirtiness'          in player else p.dirtiness         if p.dirtiness         else 1
+                p.importantMatches  = player['importantMatches']    if 'importantMatches'   in player else p.importantMatches  if p.importantMatches  else 1
+                p.loyalty           = player['loyalty']             if 'loyalty'            in player else p.loyalty           if p.loyalty           else 1
+                p.pressure          = player['pressure']            if 'pressure'           in player else p.pressure          if p.pressure          else 1
+                p.professionalism   = player['professionalism']     if 'professionalism'    in player else p.professionalism   if p.professionalism   else 1
+                p.injuryProneness   = player['injuryProneness']     if 'injuryProneness'    in player else p.injuryProneness   if p.injuryProneness   else 1
+                p.temperament       = player['temperament']         if 'temperament'        in player else p.temperament       if p.temperament       else 1
+                p.versatility       = player['versatility']         if 'versatility'        in player else p.versatility       if p.versatility       else 1
+                p.aggression        = player['aggression']          if 'aggression'         in player else p.aggression        if p.aggression        else 1
+                p.anticipation      = player['anticipation']        if 'anticipation'       in player else p.anticipation      if p.anticipation      else 1
+                p.bravery           = player['bravery']             if 'bravery'            in player else p.bravery           if p.bravery           else 1
+                p.composure         = player['composure']           if 'composure'          in player else p.composure         if p.composure         else 1
+                p.concentration     = player['concentration']       if 'concentration'      in player else p.concentration     if p.concentration     else 1
+                p.decisions         = player['decisions']           if 'decisions'          in player else p.decisions         if p.decisions         else 1
+                p.determination     = player['determination']       if 'determination'      in player else p.determination     if p.determination     else 1
+                p.flair             = player['flair']               if 'flair'              in player else p.flair             if p.flair             else 1
+                p.leadership        = player['leadership']          if 'leadership'         in player else p.leadership        if p.leadership        else 1
+                p.offBall           = player['offBall']             if 'offBall'            in player else p.offBall           if p.offBall           else 1
+                p.positioning       = player['positioning']         if 'positioning'        in player else p.positioning       if p.positioning       else 1
+                p.teamwork          = player['teamwork']            if 'teamwork'           in player else p.teamwork          if p.teamwork          else 1
+                p.vision            = player['vision']              if 'vision'             in player else p.vision            if p.vision            else 1
+                p.workRate          = player['workRate']            if 'workRate'           in player else p.workRate          if p.workRate          else 1
+                p.acceleration      = player['agility']             if 'acceleration'       in player else p.acceleration      if p.acceleration      else 1
+                p.agility           = player['agility']             if 'agility'            in player else p.agility           if p.agility           else 1
+                p.balance           = player['balance']             if 'balance'            in player else p.balance           if p.balance           else 1
+                p.jumpingReach      = player['jumpingReach']        if 'jumpingReach'       in player else p.jumpingReach      if p.jumpingReach      else 1
+                p.naturalFitness    = player['naturalFitness']      if 'naturalFitness'     in player else p.naturalFitness    if p.naturalFitness    else 1
+                p.pace              = player['pace']                if 'pace'               in player else p.pace              if p.pace              else 1
+                p.stamina           = player['stamina']             if 'stamina'            in player else p.stamina           if p.stamina           else 1
+                p.strength          = player['strength']            if 'strength'           in player else p.strength          if p.strength          else 1
 
-            if p.id:
-                updated     += 0 if new else 1
-                newRecords  += 1 if new else 0
-                if p.position == 'GR':
-                    gk = Goalkeeper.objects.filter(player=p).first()
+                p.save()
 
-                    if not gk:
-                        gk = Goalkeeper()
-                        gk.player = p
+                if p.id:
+                    updated     += 0 if new else 1
+                    newRecords  += 1 if new else 0
+                    if p.position == 'GR':
+                        gk = Goalkeeper.objects.filter(player=p).first()
 
-                    gk.aerialAbility    = player['aerialAbility']   if 'aerialAbility'  in player else gk.aerialAbility if gk.aerialAbility else 1
-                    gk.commandArea      = player['commandArea']     if 'commandArea'    in player else gk.commandArea   if gk.commandArea   else 1
-                    gk.communication    = player['communication']   if 'communication'  in player else gk.communication if gk.communication else 1
-                    gk.eccentricity     = player['eccentricity']    if 'eccentricity'   in player else gk.eccentricity  if gk.eccentricity  else 1
-                    gk.handling         = player['handling']        if 'handling'       in player else gk.handling      if gk.handling      else 1
-                    gk.kicking          = player['kicking']         if 'kicking'        in player else gk.kicking       if gk.kicking       else 1
-                    gk.oneOnOne         = player['oneOnOne']        if 'oneOnOne'       in player else gk.oneOnOne      if gk.oneOnOne      else 1
-                    gk.reflexes         = player['reflexes']        if 'reflexes'       in player else gk.reflexes      if gk.reflexes      else 1
-                    gk.rushingOut       = player['rushingOut']      if 'rushingOut'     in player else gk.rushingOut    if gk.rushingOut    else 1
-                    gk.throwing         = player['throwing']        if 'throwing'       in player else gk.throwing      if gk.throwing      else 1
-                    gk.tendencyPunch    = player['tendencyPunch']   if 'tendencyPunch'  in player else gk.tendencyPunch if gk.tendencyPunch else 1
-                    gk.rushingOut       = player['rushingOut']      if 'rushingOut'     in player else gk.rushingOut    if gk.rushingOut    else 1
-                    gk.throwing         = player['throwing']        if 'throwing'       in player else gk.throwing      if gk.throwing      else 1
-                    gk.tendencyPunch    = player['tendencyPunch']   if 'tendencyPunch'  in player else gk.tendencyPunch if gk.tendencyPunch else 1
-                    gk.passing          = player['passing']         if 'passing'        in player else gk.passing       if gk.passing       else 1
-                    gk.firstTouch       = player['firstTouch']      if 'firstTouch'     in player else gk.firstTouch    if gk.firstTouch    else 1
-                    gk.freekick         = player['freekick']        if 'freekick'       in player else gk.freekick      if gk.freekick      else 1
-                    gk.penaltyTaking    = player['penaltyTaking']   if 'penaltyTaking'  in player else gk.penaltyTaking if gk.penaltyTaking else 1
-                    gk.technique        = player['technique']       if 'technique'      in player else gk.technique     if gk.technique     else 1
+                        if not gk:
+                            gk = Goalkeeper()
+                            gk.player = p
 
-                    gk.save()
+                        gk.aerialAbility    = player['aerialAbility']   if 'aerialAbility'  in player else gk.aerialAbility if gk.aerialAbility else 1
+                        gk.commandArea      = player['commandArea']     if 'commandArea'    in player else gk.commandArea   if gk.commandArea   else 1
+                        gk.communication    = player['communication']   if 'communication'  in player else gk.communication if gk.communication else 1
+                        gk.eccentricity     = player['eccentricity']    if 'eccentricity'   in player else gk.eccentricity  if gk.eccentricity  else 1
+                        gk.handling         = player['handling']        if 'handling'       in player else gk.handling      if gk.handling      else 1
+                        gk.kicking          = player['kicking']         if 'kicking'        in player else gk.kicking       if gk.kicking       else 1
+                        gk.oneOnOne         = player['oneOnOne']        if 'oneOnOne'       in player else gk.oneOnOne      if gk.oneOnOne      else 1
+                        gk.reflexes         = player['reflexes']        if 'reflexes'       in player else gk.reflexes      if gk.reflexes      else 1
+                        gk.rushingOut       = player['rushingOut']      if 'rushingOut'     in player else gk.rushingOut    if gk.rushingOut    else 1
+                        gk.throwing         = player['throwing']        if 'throwing'       in player else gk.throwing      if gk.throwing      else 1
+                        gk.tendencyPunch    = player['tendencyPunch']   if 'tendencyPunch'  in player else gk.tendencyPunch if gk.tendencyPunch else 1
+                        gk.rushingOut       = player['rushingOut']      if 'rushingOut'     in player else gk.rushingOut    if gk.rushingOut    else 1
+                        gk.throwing         = player['throwing']        if 'throwing'       in player else gk.throwing      if gk.throwing      else 1
+                        gk.tendencyPunch    = player['tendencyPunch']   if 'tendencyPunch'  in player else gk.tendencyPunch if gk.tendencyPunch else 1
+                        gk.passing          = player['passing']         if 'passing'        in player else gk.passing       if gk.passing       else 1
+                        gk.firstTouch       = player['firstTouch']      if 'firstTouch'     in player else gk.firstTouch    if gk.firstTouch    else 1
+                        gk.freekick         = player['freekick']        if 'freekick'       in player else gk.freekick      if gk.freekick      else 1
+                        gk.penaltyTaking    = player['penaltyTaking']   if 'penaltyTaking'  in player else gk.penaltyTaking if gk.penaltyTaking else 1
+                        gk.technique        = player['technique']       if 'technique'      in player else gk.technique     if gk.technique     else 1
+
+                        gk.save()
+                    else:
+                        tech = Technical.objects.filter(player=p).first()
+
+                        if not tech:
+                            tech = Technical()
+                            tech.player = p
+
+                        tech.corners        = player['corners']         if 'corners'        in player else tech.corners       if tech.corners       else 1
+                        tech.crossing       = player['crossing']        if 'crossing'       in player else tech.crossing      if tech.crossing      else 1
+                        tech.dribbling      = player['dribbling']       if 'dribbling'      in player else tech.dribbling     if tech.dribbling     else 1
+                        tech.finishing      = player['finishing']       if 'finishing'      in player else tech.finishing     if tech.finishing     else 1
+                        tech.freekick       = player['freekick']        if 'freekick'       in player else tech.freekick      if tech.freekick      else 1
+                        tech.heading        = player['heading']         if 'heading'        in player else tech.heading       if tech.heading       else 1
+                        tech.longShots      = player['longShots']       if 'longShots'      in player else tech.longShots     if tech.longShots     else 1
+                        tech.longThrows     = player['longThrows']      if 'longThrows'     in player else tech.longThrows    if tech.longThrows    else 1
+                        tech.marking        = player['marking']         if 'marking'        in player else tech.marking       if tech.marking       else 1
+                        tech.passing        = player['passing']         if 'passing'        in player else tech.passing       if tech.passing       else 1
+                        tech.tackling       = player['tackling']        if 'tackling'       in player else tech.tackling      if tech.tackling      else 1
+                        tech.technique      = player['technique']       if 'technique'      in player else tech.technique     if tech.technique     else 1
+                        tech.penaltyTaking  = player['penaltyTaking']   if 'penaltyTaking'  in player else tech.penaltyTaking if tech.penaltyTaking else 1
+
+                        tech.save()
                 else:
-                    tech = Technical.objects.filter(player=p).first()
-
-                    if not tech:
-                        tech = Technical()
-                        tech.player = p
-
-                    tech.corners        = player['corners']         if 'corners'        in player else tech.corners       if tech.corners       else 1
-                    tech.crossing       = player['crossing']        if 'crossing'       in player else tech.crossing      if tech.crossing      else 1
-                    tech.dribbling      = player['dribbling']       if 'dribbling'      in player else tech.dribbling     if tech.dribbling     else 1
-                    tech.finishing      = player['finishing']       if 'finishing'      in player else tech.finishing     if tech.finishing     else 1
-                    tech.freekick       = player['freekick']        if 'freekick'       in player else tech.freekick      if tech.freekick      else 1
-                    tech.heading        = player['heading']         if 'heading'        in player else tech.heading       if tech.heading       else 1
-                    tech.longShots      = player['longShots']       if 'longShots'      in player else tech.longShots     if tech.longShots     else 1
-                    tech.longThrows     = player['longThrows']      if 'longThrows'     in player else tech.longThrows    if tech.longThrows    else 1
-                    tech.marking        = player['marking']         if 'marking'        in player else tech.marking       if tech.marking       else 1
-                    tech.passing        = player['passing']         if 'passing'        in player else tech.passing       if tech.passing       else 1
-                    tech.tackling       = player['tackling']        if 'tackling'       in player else tech.tackling      if tech.tackling      else 1
-                    tech.technique      = player['technique']       if 'technique'      in player else tech.technique     if tech.technique     else 1
-                    tech.penaltyTaking  = player['penaltyTaking']   if 'penaltyTaking'  in player else tech.penaltyTaking if tech.penaltyTaking else 1
-
-                    tech.save()
-            else:
-                errors.append(uniqueID)
+                    errors.append(uniqueID)
+        except Exception as e:
+            print(e)
     
     return dict(
         updated=updated,
@@ -297,6 +299,7 @@ def convertCSVtoPlayer(csv_reader, cont):
             cont += 1
         else:
             try:
+                print(csv[10].replace('€', '').replace(',', '').split(' ')[0])
                 player = dict(
                     uniqueID            = csv[2],
                     name                = csv[3],
@@ -306,7 +309,7 @@ def convertCSVtoPlayer(csv_reader, cont):
                     secondNationality   = csv[7],
                     height              = int(csv[8].split(' ')[0]),
                     weight              = int(csv[9].split(' ')[0]),
-                    wage                = csv[10].replace('€', '').replace(',', '').split(' ')[0],
+                    wage                = csv[10].replace('€', '').replace(',', '').split(' ')[0].replace('\x80', ''),
                     contractEnd         = datetime.strptime(csv[11], '%d/%m/%Y'),
                     club                = csv[12],
                     pressDescription    = csv[13],
@@ -404,7 +407,7 @@ class PlayersCSV(APIView):
         excel_file = uploaded_file_url
 
         try:
-            with open('.'+excel_file) as file:
+            with open('.'+excel_file, encoding="ISO-8859-1") as file:
                 csv_reader = csv.reader(file, delimiter=';')
                 players = convertCSVtoPlayer(csv_reader, 0)
                 sent = len(players)
