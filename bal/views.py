@@ -2,7 +2,6 @@ import csv
 import json
 import locale
 from datetime import datetime
-from tkinter import E
 
 from django.core.files.storage import FileSystemStorage
 from googletrans import Translator
@@ -171,7 +170,7 @@ def convertData(data, bal=Bal.objects.first()):
                     errors.append(uniqueID)
         except Exception as e:
             errors.append(str(e))
-    
+
     return dict(
         updated=updated,
         newRecords=newRecords,
