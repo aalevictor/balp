@@ -2,6 +2,7 @@ import csv
 import json
 import locale
 from datetime import datetime
+from tkinter import E
 
 from django.core.files.storage import FileSystemStorage
 from googletrans import Translator
@@ -40,7 +41,6 @@ def convertData(data, bal=Bal.objects.first()):
     for player in data:
         new = False
         try:
-            print(player)
             if 'uniqueID' in player:
                 uniqueID = player['uniqueID']
                 p = Player.objects.filter(uniqueID=uniqueID).first()
@@ -57,8 +57,6 @@ def convertData(data, bal=Bal.objects.first()):
                     club = Club()
                     club.name = cl
                     club.save()
-
-                print(p.wage)
 
                 p.club              = club
                 p.name              = player['name']                if 'name'               in player else p.name              if p.name              else 'John Doe'
@@ -172,7 +170,7 @@ def convertData(data, bal=Bal.objects.first()):
                 else:
                     errors.append(uniqueID)
         except Exception as e:
-            print(e)
+            errors.append(str(e))
     
     return dict(
         updated=updated,
@@ -301,7 +299,6 @@ def convertCSVtoPlayer(csv_reader, cont):
             cont += 1
         else:
             try:
-                print(csv[10].replace('€', '').replace(',', '').split(' ')[0])
                 player = dict(
                     uniqueID            = csv[2],
                     name                = csv[3],
