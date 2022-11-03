@@ -1,11 +1,13 @@
 import hashlib
 import json
 
+from django.contrib.auth.models import User
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import AccessToken
 
 from accounts.models import User
 
@@ -18,7 +20,18 @@ def get_request_data(self, request):
         except:
             request_data = request.data
         return request_data
-        
+
+class CheckLogin(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+
+        response = dict(
+            twitch=request.user.twitch,
+            email=request.user.email
+        )
+
+        return Response(response)
 class UsersAPI(APIView):
 
     def post(self, request):
