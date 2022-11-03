@@ -31,7 +31,7 @@ urlpatterns = [
     path('user/', include('accounts.urls')),
     path('login', TokenObtainPairView.as_view()),
     path('check', CheckLogin.as_view()),
-    path('token/refresh', TokenRefreshView.as_view())
+    path('refresh', TokenRefreshView.as_view())
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
