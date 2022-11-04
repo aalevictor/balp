@@ -76,8 +76,7 @@ class UsersAPI(APIView):
                 error.append('O campo nome é obrigatório.')
 
             if 'password' in data:
-                md5_password = hashlib.md5(data['password'].encode('UTF-8')).hexdigest()
-                user.password = md5_password
+                user.set_password(data['password'])
             else:
                 error.append('O campo senha é obrigatório.')
                 
