@@ -24,7 +24,7 @@ def get_request_data(self, request):
 class VerifyUsers(APIView):
 
     def get(self, request):
-        status = False
+        status = True
         
         twitch = self.request.GET.get('twitch', None)
         email = self.request.GET.get('twitch', None)
@@ -37,7 +37,7 @@ class VerifyUsers(APIView):
         users = users.all()
 
         if len(users) > 0:
-            status = True
+            status = False
 
         response = dict(
             available=status
