@@ -36,7 +36,7 @@ class VerifyUsers(APIView):
             users = users.filter(email=email)
         users = users.all()
 
-        if not users:
+        if len(users) > 0:
             status = True
 
         response = dict(
