@@ -1,7 +1,7 @@
 import hashlib
 import json
 
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -27,13 +27,16 @@ class VerifyUsers(APIView):
         status = True
         
         twitch = self.request.GET.get('twitch', None)
-        email = self.request.GET.get('twitch', None)
+        email = self.request.GET.get('email', None)
+        discord = self.request.GET.get('discord', None)
 
         users = User.objects
         if twitch != None:
             users = users.filter(twitch=twitch)
         if email != None:
             users = users.filter(email=email)
+        if discord != None:
+            users = users.filter(discord=discord.replace('@', '#'))
         users = users.all()
 
         if len(users) > 0:
@@ -109,7 +112,3 @@ class UsersAPI(APIView):
         )
 
         return Response(response, st)
-
-# class TwitchToken(APIView):
-#     def get(self):
-        
