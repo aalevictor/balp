@@ -21,6 +21,30 @@ def get_request_data(self, request):
             request_data = request.data
         return request_data
 
+class VerifyUsers(APIView):
+
+    def get(self, request):
+        status = False
+        
+        twitch = self.request.GET.get('twitch', None)
+        email = self.request.GET.get('twitch', None)
+
+        users = User.objects
+        if twitch != None:
+            users = users.filter(twitch=twitch)
+        if email != None:
+            users = users.filter(email=email)
+        users = users.all()
+
+        if not users:
+            status = True
+
+        response = dict(
+            available=status
+        )
+
+        return Response(response)
+
 class CheckLogin(APIView):
     permission_classes = (IsAuthenticated, )
 

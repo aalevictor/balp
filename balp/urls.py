@@ -21,7 +21,7 @@ from django.urls import include, path
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
 
-from accounts.views import CheckLogin
+from accounts.views import CheckLogin, VerifyUsers
 
 urlpatterns = [
     path('', include('bal.urls')),
@@ -31,6 +31,7 @@ urlpatterns = [
     path('user/', include('accounts.urls')),
     path('login', TokenObtainPairView.as_view()),
     path('check', CheckLogin.as_view()),
+    path('verify', VerifyUsers.as_view()),
     path('refresh', TokenRefreshView.as_view())
 ]
 
