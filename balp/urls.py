@@ -24,7 +24,6 @@ from rest_framework_simplejwt.views import (TokenObtainPairView,
 from accounts.views import CheckLogin, VerifyUsers
 
 urlpatterns = [
-    path('', include('bal.urls')),
     path('admin/', admin.site.urls),
     path('bal/', include('bal.urls')),
     path('ocr/', include('ocr.urls')),

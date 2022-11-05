@@ -6,6 +6,7 @@ from datetime import datetime
 from django.core.files.storage import FileSystemStorage
 from googletrans import Translator
 from rest_framework import status
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -459,7 +460,7 @@ class PlayersAPI(APIView):
         if uid != None:
             players = players.filter(uniqueID=uid)
         if club != None:
-            players = players.filter(club=club)
+            players = players.filter(club__name__icontains=club)
         if nationality != None:
             players = players.filter(nationality=nationality)
         if name != None:

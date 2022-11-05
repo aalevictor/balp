@@ -4,7 +4,7 @@ import json
 # from django.contrib.auth.models import User
 from django.shortcuts import render
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -79,7 +79,7 @@ class UsersAPI(APIView):
                 user.set_password(data['password'])
             else:
                 error.append('O campo senha é obrigatório.')
-                
+                  
             if 'twitch' in data:
                 twitch = data['twitch']
                 aux = User.objects.filter(twitch=twitch).first()
