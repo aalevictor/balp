@@ -61,6 +61,7 @@ def activateEmail(request, user, to_email):
             return False
     except Exception as e:
         print(e)
+        return False
         pass
 
 class VerifyUsers(APIView):
@@ -144,9 +145,14 @@ class UsersAPI(APIView):
                 user.is_active = False
                 user.save()
                 if user.id:
-                    activateEmail(request, user, data['email'])
-                    st = status.HTTP_201_CREATED
-                    error = 'Usuário criado!'
+                    act = activateEmail(request, user, data['email'])
+                    if act:
+                        st = status.HTTP_201_CREATED
+                        error = 'Usuário criado!'
+                    else:
+                        user.delete()
+                        st = status.HTTP_400_BAD_REQUEST
+                        error = 'Verifique seu email e tente novamente'
         except Exception as e:
             error.append(str(e))
 
