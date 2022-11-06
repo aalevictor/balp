@@ -133,7 +133,7 @@ class UsersAPI(APIView):
                 error.append('O campo login é obrigatório.')
 
             if 'email' in data:
-                user.email = data['email']
+                user.email = User.objects.normalize_email(data['email'])
             else:
                 error.append('O campo email é obrigatório.')
 
