@@ -1,8 +1,13 @@
 import hashlib
 import json
 
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage
 # from django.contrib.auth.models import User
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -11,15 +16,52 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from accounts.models import User
 
+from .tokens import account_activation_token
+
 
 # Create your views here.
 def get_request_data(self, request):
-        try:
-            o = request.body.decode('utf-8')
-            request_data = json.loads(o)
-        except:
-            request_data = request.data
-        return request_data
+    try:
+        o = request.body.decode('utf-8')
+        request_data = json.loads(o)
+    except:
+        request_data = request.data
+    return request_data
+
+def activate(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return redirect('https://ariedoverse.herokuapp.com/login')
+    else:
+        return False
+
+def activateEmail(request, user, to_email):
+    try:
+        mail_subject = 'Entre para a tropa do Calvo'
+
+        username = user.twitch,
+        domain = get_current_site(request).domain
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        protocol = 'https' if request.is_secure() else 'http'
+
+        message2 = "Ei, {}! Ative agora mesmo sua conta, é só clicar no link {}://{}/activate/{}/{}".format(username, protocol, domain, uid, token)
+        email = EmailMessage(mail_subject, message2, to=[to_email])
+
+        if email.send():
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
+        pass
 
 class VerifyUsers(APIView):
 
@@ -91,7 +133,7 @@ class UsersAPI(APIView):
                 error.append('O campo login é obrigatório.')
 
             if 'email' in data:
-                user.email = User.objects.normalize_email(data['email'])
+                user.email = data['email']
             else:
                 error.append('O campo email é obrigatório.')
 
@@ -99,8 +141,10 @@ class UsersAPI(APIView):
                 user.discord = data['discord']
 
             if len(error) == 0:
+                user.is_active = False
                 user.save()
                 if user.id:
+                    activateEmail(request, user, data['email'])
                     st = status.HTTP_201_CREATED
                     error = 'Usuário criado!'
         except Exception as e:
