@@ -38,7 +38,7 @@ def activate(request, uidb64, token):
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()
-        return redirect('https://ariedoverse.herokuapp.com/login')
+        return redirect('https://ariedoverse.herokuapp.com/login?activate=true')
     else:
         return False
 
