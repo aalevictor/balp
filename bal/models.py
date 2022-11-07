@@ -152,3 +152,10 @@ class Training(models.Model):
     trainingSession = models.ForeignKey(TrainingSession, on_delete=models.CASCADE)
     creation = models.DateField(auto_now_add=True)
     attributes = JSONField(default=None)
+
+class Task(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    init = models.DateTimeField(auto_now_add=True)
+    end = models.DateField(auto_now=True)
+    response = JSONField(default=None)
+

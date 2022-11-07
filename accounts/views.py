@@ -1,9 +1,11 @@
 import hashlib
 import json
+import threading
 
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User as Users
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
-# from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_str
@@ -12,7 +14,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from accounts.models import User
 
@@ -159,5 +161,58 @@ class UsersAPI(APIView):
         response = dict(
             result=error
         )
+
+        return Response(response, st)
+
+class LoginAPI(APIView):
+    def post(self, request):
+        st = status.HTTP_500_INTERNAL_SERVER_ERROR
+        response = ''
+
+        twitch = ''
+        password = ''
+
+        stat = False
+
+        data = get_request_data(self, request)
+
+        user = User.objects
+
+        try:
+            if 'twitch' in data:
+                twitch = data['twitch']
+
+            if 'password' in data:
+                password = data['password']
+
+            if password != '' and twitch != '':
+                user = user.filter(twitch__iexact=twitch).first()
+                if user:
+                    if user.is_active:
+                        u = authenticate(username=user.twitch, password=password)
+                        if u:
+                            refresh = RefreshToken.for_user(u)
+                            response = dict(
+                                refresh = str(refresh),
+                                access = str(refresh.access_token)
+                            )
+                            st = status.HTTP_200_OK
+                        else:
+                            stat = True
+                    elif User.check_password(user, password):
+                        response = "Usuário pendente de ativação"
+                        st = status.HTTP_401_UNAUTHORIZED
+                    else:
+                        stat = True
+                else:
+                    stat = True
+
+        except Exception as e:
+            response = str(e)
+            pass
+
+        if stat:
+            response = "Usuário e/ou senha incorreto(s)"
+            st = status.HTTP_401_UNAUTHORIZED
 
         return Response(response, st)

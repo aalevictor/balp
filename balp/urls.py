@@ -21,17 +21,18 @@ from django.urls import include, path
 from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
 
-from accounts.views import CheckLogin, VerifyUsers, activate
+from accounts.views import CheckLogin, LoginAPI, VerifyUsers, activate
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('bal/', include('bal.urls')),
     path('ocr/', include('ocr.urls')),
     path('user/', include('accounts.urls')),
-    path('login', TokenObtainPairView.as_view()),
+    # path('login', TokenObtainPairView.as_view()),
     path('check', CheckLogin.as_view()),
     path('verify', VerifyUsers.as_view()),
     path('refresh', TokenRefreshView.as_view()),
+    path('login', LoginAPI.as_view()),
     path('activate/<uidb64>/<token>', activate, name='activate'),
 ]
 

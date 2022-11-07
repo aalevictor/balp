@@ -1,6 +1,7 @@
 import csv
 import json
 import locale
+import threading
 from datetime import datetime
 
 from django.core.files.storage import FileSystemStorage
@@ -13,7 +14,7 @@ from rest_framework.views import APIView
 locale.setlocale(locale.LC_ALL, '')
 translator = Translator()
 
-from bal.models import Bal, Club, Goalkeeper, Player, Technical
+from bal.models import Bal, Club, Goalkeeper, Player, Task, Technical
 
 
 # Create your views here.
@@ -382,52 +383,70 @@ def convertCSVtoPlayer(csv_reader, cont):
                 players.append(player)
             except Exception as e:
                 pass
-    
-    return players
-class PlayersCSV(APIView):
-    # permission_classes = (IsAuthenticated, )
 
-    def post(self, request):
+    return players
+
+def conversion(self, request, task):
+    balID = self.request.GET.get('bal', None)
+    if balID:
+        bal = Bal.objects.filter(id=balID).first()
+        if not bal:
+            bal = Bal.objects.first()
+    else:
+        bal = Bal.objects.first()
+    
+    myfile = request.FILES['players']     
+    fs = FileSystemStorage()
+    filename = fs.save('sheets/{}'.format(myfile.name), myfile)
+    uploaded_file_url = fs.url(filename)
+    excel_file = uploaded_file_url
+
+    try:
         uploaded = []
         sent = []
-        st = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-        balID = self.request.GET.get('bal', None)
-        if balID:
-            bal = Bal.objects.filter(id=balID).first()
-            if not bal:
-                bal = Bal.objects.first()
-        else:
-            bal = Bal.objects.first()
         
-        myfile = request.FILES['players']     
-        fs = FileSystemStorage()
-        filename = fs.save('sheets/{}'.format(myfile.name), myfile)
-        uploaded_file_url = fs.url(filename)
-        excel_file = uploaded_file_url
-
-        try:
-            with open('.'+excel_file, encoding="ISO-8859-1") as file:
-                csv_reader = csv.reader(file, delimiter=';')
-                players = convertCSVtoPlayer(csv_reader, 0)
-                sent = len(players)
-                uploaded = convertData(players, bal)
-                st = status.HTTP_201_CREATED
-                if sent > uploaded['updated'] + uploaded['newRecords']:
-                    st = status.HTTP_206_PARTIAL_CONTENT
-        except Exception as e:
-            response = {
-                'error': str(e)
-            }
-            fs.delete(filename)
-            return Response(response, st)
-
-        fs.delete(filename)
+        with open('.'+excel_file, encoding="ISO-8859-1") as file:
+            csv_reader = csv.reader(file, delimiter=';')
+            players = convertCSVtoPlayer(csv_reader, 0)
+            sent = len(players)
+            uploaded = convertData(players, bal)
+            st = status.HTTP_201_CREATED
+            if sent > uploaded['updated'] + uploaded['newRecords']:
+                st = status.HTTP_206_PARTIAL_CONTENT
 
         response = {
             'sent': sent,
             'uploaded': uploaded,
+            'status': st,
         }
+
+    except Exception as e:
+        response = {
+            'error': str(e)
+        }
+
+    fs.delete(filename)
+    task.response = response
+    task.save()
+
+class PlayersCSV(APIView):
+    # permission_classes = (IsAuthenticated, )
+
+    def post(self, request):
+        st = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        task = Task()
+        task.save()
+
+        t = threading.Thread(target=conversion(self, request, task))
+        t.setDaemon(True)
+        t.start()
+
+        response = {
+            'message': 'Importação iniciada',
+            'task': task.id
+        }
+        st = status.HTTP_201_CREATED
 
         return Response(response, st)
 
